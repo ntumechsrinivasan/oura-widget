@@ -19,9 +19,14 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Write gradle.properties from secret
+      - name: Write gradle.properties
         run: |
-          echo "OURA_ACCESS_TOKEN=${{ secrets.OURA_ACCESS_TOKEN }}" >> gradle.properties
+          cat >> gradle.properties <<EOF
+          org.gradle.jvmargs=-Xmx2048m
+          android.useAndroidX=true
+          kotlin.code.style=official
+          OURA_ACCESS_TOKEN=${{ secrets.OURA_ACCESS_TOKEN }}
+          EOF
 
       - uses: android-actions/setup-android@v3
 
