@@ -8,8 +8,11 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.RemoteViews
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 
 class OuraWidgetProvider : AppWidgetProvider() {
 
@@ -49,6 +52,18 @@ class OuraWidgetProvider : AppWidgetProvider() {
             WorkManager.getInstance(context).enqueue(request)
         }
 
+        fun schedulePeriodicRefresh(context: Context) {
+            val request = PeriodicWorkRequestBuilder<OuraNotificationWorker>(
+                15, TimeUnit.MINUTES // WorkManager's minimum periodic interval
+            ).build()
+
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                "oura_periodic_check",
+                ExistingPeriodicWorkPolicy.UPDATE,
+                request
+            )
+        }
+
         fun openOuraAppPendingIntent(context: Context): PendingIntent {
             val launchIntent = context.packageManager.getLaunchIntentForPackage(OURA_PACKAGE)
                 ?: Intent(Intent.ACTION_VIEW, Uri.parse(OURA_WEB_FALLBACK))
@@ -68,6 +83,11 @@ class OuraWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         }
+    }
+
+    override fun onEnabled(context: Context) {
+        super.onEnabled(context)
+        schedulePeriodicRefresh(context)
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
