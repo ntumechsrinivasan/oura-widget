@@ -16,6 +16,7 @@ class OuraWidgetProvider : AppWidgetProvider() {
     companion object {
         private const val OURA_PACKAGE = "com.ouraring.oura"
         private const val OURA_WEB_FALLBACK = "https://cloud.ouraring.com"
+        const val ACTION_REFRESH = "com.srini.ourawidget.ACTION_REFRESH"
 
         fun updateAllWidgets(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
@@ -37,6 +38,7 @@ class OuraWidgetProvider : AppWidgetProvider() {
                 }
                 loadingViews.setTextViewText(R.id.widget_status, "Refreshing…")
                 loadingViews.setOnClickPendingIntent(R.id.widget_root, openOuraAppPendingIntent(context))
+                loadingViews.setOnClickPendingIntent(R.id.widget_refresh, refreshPendingIntent(context))
                 manager.updateAppWidget(id, loadingViews)
             }
 
@@ -56,9 +58,26 @@ class OuraWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         }
+
+        fun refreshPendingIntent(context: Context): PendingIntent {
+            val refreshIntent = Intent(context, OuraWidgetProvider::class.java).apply {
+                action = ACTION_REFRESH
+            }
+            return PendingIntent.getBroadcast(
+                context, 0, refreshIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         updateAllWidgets(context)
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action == ACTION_REFRESH) {
+            updateAllWidgets(context)
+        }
     }
 }
