@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Oura Widget</string>
+    <string name="widget_label">Oura Steps &amp; Calories</string>
+    <string name="widget_description">Shows today\'s steps and active calories from Oura.</string>
+
+    <string name="setup_title">Connect Oura</string>
+    <string name="setup_body">Paste a personal access token from cloud.ouraring.com/personal-access-tokens. It\'s stored encrypted on this device only.</string>
+    <string name="setup_token_label">Personal access token</string>
+    <string name="setup_save">Save &amp; refresh</string>
+    <string name="setup_saved">Saved. Widget will update shortly.</string>
+    <string name="setup_error_empty">Enter a token first.</string>
+    <string name="setup_error_invalid">That token was rejected by Oura. Double-check it and try again.</string>
+    <string name="setup_error_network">Couldn\'t reach Oura. Check your connection and try again.</string>
+    <string name="setup_continue">Continue with saved token</string>
+
+    <string name="widget_steps">Steps</string>
+    <string name="widget_calories">Active calories</string>
+    <string name="widget_updated_prefix">Updated</string>
+    <string name="widget_updating">Updating…</string>
+    <string name="widget_not_configured">Tap to connect Oura</string>
+    <string name="widget_error">Tap to retry</string>
+    <string name="widget_refresh_cd">Refresh</string>
+</resources>

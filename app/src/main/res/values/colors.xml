@@ -1,0 +1,11 @@
+<resources>
+    <color name="widget_background">#F7F5FB</color>
+    <color name="widget_surface_variant">#EFEAF7</color>
+    <color name="widget_on_surface">#1B1B1F</color>
+    <color name="widget_on_surface_variant">#6F6C77</color>
+    <color name="widget_accent_steps">#1E9E8F</color>
+    <color name="widget_accent_calories">#E85D3D</color>
+    <color name="widget_outline">#E3DFEC</color>
+
+    <color name="brand_primary">#6C4FE0</color>
+</resources>

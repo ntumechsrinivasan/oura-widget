@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Footstep -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M45,34 C51,34 55,40 55,48 C55,54 53,58 51,63 C49,68 49,73 51,77 C52,80 51,83 48,84 C45,85 42,83 41,80 C38,72 37,64 38,56 C39,48 39,40 45,34 Z" />
+    <!-- Flame -->
+    <path
+        android:fillColor="#FFB37A"
+        android:pathData="M66,50 C70,55 73,60 72,66 C71,71 66,74 61,73 C57,72 54,68 55,63 C55.6,60.2 57,58.5 58.3,56.6 C58.9,58.4 60,59.4 61.4,59.7 C60.3,55.9 61.8,52.4 66,50 Z" />
+</vector>
