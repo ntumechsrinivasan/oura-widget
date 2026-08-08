@@ -33,12 +33,12 @@ class OuraWidgetProvider : AppWidgetProvider() {
             // placeholder while the fetch is in flight.
             for (id in ids) {
                 val loadingViews = RemoteViews(context.packageName, R.layout.widget_oura)
-                WidgetStatsCache.stepsOrNull(context)?.let {
-                    loadingViews.setTextViewText(R.id.widget_steps, "$it")
-                }
-                WidgetStatsCache.caloriesOrNull(context)?.let {
-                    loadingViews.setTextViewText(R.id.widget_calories, "$it")
-                }
+                applyStats(
+                    loadingViews,
+                    WidgetStatsCache.stepsOrNull(context),
+                    WidgetStatsCache.activeCaloriesOrNull(context),
+                    WidgetStatsCache.targetCaloriesOrNull(context)
+                )
                 loadingViews.setTextViewText(R.id.widget_status, "Refreshing…")
                 loadingViews.setOnClickPendingIntent(R.id.widget_root, openOuraAppPendingIntent(context))
                 loadingViews.setOnClickPendingIntent(R.id.widget_refresh, refreshPendingIntent(context))
@@ -50,6 +50,21 @@ class OuraWidgetProvider : AppWidgetProvider() {
             // BroadcastReceiver's process gets killed right after returning.
             val request = OneTimeWorkRequestBuilder<OuraWidgetRefreshWorker>().build()
             WorkManager.getInstance(context).enqueue(request)
+        }
+
+        /**
+         * Fills in the steps number and the calorie-goal progress (percent text +
+         * ProgressBar) from whatever values are available. Any null is left as the
+         * layout's existing placeholder rather than forced to a fallback, so a
+         * partial cache (e.g. steps known, goal not yet) still shows what it can.
+         */
+        fun applyStats(views: RemoteViews, steps: Int?, activeCalories: Int?, targetCalories: Int?) {
+            steps?.let { views.setTextViewText(R.id.widget_steps, "$it") }
+            if (activeCalories != null && targetCalories != null && targetCalories > 0) {
+                val percent = ((activeCalories * 100) / targetCalories).coerceIn(0, 100)
+                views.setTextViewText(R.id.widget_goal_percent, "$percent%")
+                views.setProgressBar(R.id.widget_goal_progress, 100, percent, false)
+            }
         }
 
         fun schedulePeriodicRefresh(context: Context) {
