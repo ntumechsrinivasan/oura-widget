@@ -28,6 +28,22 @@ jobs:
           OURA_ACCESS_TOKEN=${{ secrets.OURA_ACCESS_TOKEN }}
           EOF
 
+      - name: Cache debug signing keystore
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: android-debug-keystore-v1
+
+      - name: Generate debug keystore if not cached
+        run: |
+          mkdir -p ~/.android
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkey -v -keystore ~/.android/debug.keystore \
+              -storepass android -alias androiddebugkey -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
       - uses: android-actions/setup-android@v3
 
       - name: Accept Android SDK licenses
