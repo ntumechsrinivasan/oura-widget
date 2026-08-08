@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         findViewById<TextView>(R.id.status_text).text =
-            "Set up: checking every few hours in the background.\n\n" +
+            "Set up: checking every 15 minutes in the background (Android's fastest allowed).\n\n" +
             "Add the widget from your home screen's widget picker (long-press home screen → Widgets → Oura Widget) " +
             "to see steps and calories at a glance."
 
@@ -54,12 +54,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun scheduleWorker() {
         val request = PeriodicWorkRequestBuilder<OuraNotificationWorker>(
-            3, TimeUnit.HOURS // "every few hours"
+            15, TimeUnit.MINUTES // WorkManager's minimum periodic interval
         ).build()
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "oura_periodic_check",
-            ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.UPDATE,
             request
         )
     }
