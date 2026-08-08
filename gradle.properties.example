@@ -1,0 +1,8 @@
+org.gradle.jvmargs=-Xmx2048m
+android.useAndroidX=true
+kotlin.code.style=official
+
+# Your Oura personal access token - kept out of source code on purpose.
+# Copy this file to gradle.properties (gitignored) and paste your real token below.
+# Get one at cloud.ouraring.com/personal-access-tokens
+OURA_ACCESS_TOKEN=
