@@ -7,31 +7,40 @@ total calories from Oura:
 - **Background check every ~3 hours** (via WorkManager) that updates the
   widget and pushes a notification with the latest numbers.
 
-## What's already set up
+## How to build and install (phone-only, no computer needed)
 
-Copy `gradle.properties.example` to `gradle.properties` and paste your Oura
-personal access token into the `OURA_ACCESS_TOKEN=` line. It's wired into the
-build via `BuildConfig.OURA_ACCESS_TOKEN` — nothing to paste into code. Get a
-token at `cloud.ouraring.com/personal-access-tokens`.
+The `.github/workflows/build-apk.yml` workflow builds the APK on GitHub's
+servers, so you never need Android Studio. Do all of this from the GitHub
+app or a mobile browser:
 
-**`gradle.properties` is gitignored on purpose** — never commit it, since it
-will hold your real token once you fill it in.
+1. **Add your Oura token as a repo secret** (one-time): in this repo go to
+   **Settings → Secrets and variables → Actions → New repository secret**.
+   Name it `OURA_ACCESS_TOKEN` and paste your token from
+   `cloud.ouraring.com/personal-access-tokens` as the value. This keeps the
+   token out of the codebase — it's injected at build time only.
+2. **Trigger a build**: any push to this repo starts one automatically. To
+   run it on demand instead, go to the **Actions** tab → **Build APK** →
+   **Run workflow**.
+3. **Wait for the green check** (a few minutes), then open the
+   **Releases** page of this repo (or `/releases/tag/latest-apk`). It
+   always holds the newest build as `app-debug.apk`.
+4. **Download `app-debug.apk`** directly in your phone's browser, then tap
+   the downloaded file to install. Android will ask to allow installs from
+   that app (Chrome/Files) the first time — allow it, then tap **Install**.
+5. Open the app once to grant the notification permission, then long-press
+   your home screen → **Widgets** → **Oura Widget** → drag it onto your
+   home screen.
 
-## How to build and install
+If you ever regenerate your Oura token, just update the
+`OURA_ACCESS_TOKEN` repo secret and re-run the workflow — no code changes
+needed.
 
-1. Install [Android Studio](https://developer.android.com/studio) if you
-   don't have it (free, works on Mac/Windows/Linux).
-2. Open Android Studio → **Open** → select this `OuraWidget` folder.
-3. Let it sync (first sync downloads Gradle + dependencies, takes a few
-   minutes).
-4. Connect your Pixel 10 Pro XL via USB, with **USB debugging** enabled
-   (Settings → About phone → tap "Build number" 7 times → Developer options
-   → USB debugging).
-5. Select your phone in the device dropdown at the top, then click the green
-   **Run ▶** button.
-6. On first launch, allow the notification permission prompt.
-7. Long-press your home screen → **Widgets** → find **Oura Widget** → drag
-   it onto your home screen.
+### Building from a computer instead
+
+If you'd rather use Android Studio: copy `gradle.properties.example` to
+`gradle.properties`, paste your token into the `OURA_ACCESS_TOKEN=` line,
+open the `OuraWidget` folder in Android Studio, and run it on a connected
+device. `gradle.properties` is gitignored on purpose — never commit it.
 
 ## Notes / limitations
 
@@ -45,3 +54,6 @@ will hold your real token once you fill it in.
 - `updatePeriodMillis` in the widget config is a backup refresh signal;
   the real schedule is driven by the WorkManager job in `MainActivity`
   (every 3 hours), which is more reliable on modern Android.
+- The APK built by this workflow is signed with Android's default debug
+  key (fine for installing on your own device); it's not suitable for
+  Play Store distribution.
