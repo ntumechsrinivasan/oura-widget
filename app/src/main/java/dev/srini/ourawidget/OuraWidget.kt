@@ -1,6 +1,7 @@
 package dev.srini.ourawidget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
@@ -24,7 +25,6 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.defaultWeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -80,7 +80,7 @@ private fun NotConfiguredContent() {
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
-            .clickable(actionStartActivity<ConfigActivity>()),
+            .clickable(actionStartActivity(Intent(context, ConfigActivity::class.java))),
         horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
         verticalAlignment = Alignment.Vertical.CenterVertically
     ) {
