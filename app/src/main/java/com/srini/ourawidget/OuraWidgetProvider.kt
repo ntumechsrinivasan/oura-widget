@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.widget.RemoteViews
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -13,7 +14,8 @@ import androidx.work.WorkManager
 class OuraWidgetProvider : AppWidgetProvider() {
 
     companion object {
-        const val ACTION_REFRESH = "com.srini.ourawidget.ACTION_REFRESH"
+        private const val OURA_PACKAGE = "com.ouraring.oura"
+        private const val OURA_WEB_FALLBACK = "https://cloud.ouraring.com"
 
         fun updateAllWidgets(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
@@ -22,12 +24,19 @@ class OuraWidgetProvider : AppWidgetProvider() {
             )
             if (ids.isEmpty()) return
 
-            // Show a lightweight "refreshing" state immediately; this part is
-            // synchronous and safe to do directly.
+            // Show a lightweight "refreshing" state immediately, keeping the last
+            // known numbers on screen instead of resetting to the layout's "--"
+            // placeholder while the fetch is in flight.
             for (id in ids) {
                 val loadingViews = RemoteViews(context.packageName, R.layout.widget_oura)
+                WidgetStatsCache.stepsOrNull(context)?.let {
+                    loadingViews.setTextViewText(R.id.widget_steps, "$it")
+                }
+                WidgetStatsCache.caloriesOrNull(context)?.let {
+                    loadingViews.setTextViewText(R.id.widget_calories, "$it")
+                }
                 loadingViews.setTextViewText(R.id.widget_status, "Refreshing…")
-                loadingViews.setOnClickPendingIntent(R.id.widget_root, refreshPendingIntent(context))
+                loadingViews.setOnClickPendingIntent(R.id.widget_root, openOuraAppPendingIntent(context))
                 manager.updateAppWidget(id, loadingViews)
             }
 
@@ -38,12 +47,12 @@ class OuraWidgetProvider : AppWidgetProvider() {
             WorkManager.getInstance(context).enqueue(request)
         }
 
-        fun refreshPendingIntent(context: Context): PendingIntent {
-            val refreshIntent = Intent(context, OuraWidgetProvider::class.java).apply {
-                action = ACTION_REFRESH
-            }
-            return PendingIntent.getBroadcast(
-                context, 0, refreshIntent,
+        fun openOuraAppPendingIntent(context: Context): PendingIntent {
+            val launchIntent = context.packageManager.getLaunchIntentForPackage(OURA_PACKAGE)
+                ?: Intent(Intent.ACTION_VIEW, Uri.parse(OURA_WEB_FALLBACK))
+            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            return PendingIntent.getActivity(
+                context, 0, launchIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         }
@@ -51,12 +60,5 @@ class OuraWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         updateAllWidgets(context)
-    }
-
-    override fun onReceive(context: Context, intent: Intent) {
-        super.onReceive(context, intent)
-        if (intent.action == ACTION_REFRESH) {
-            updateAllWidgets(context)
-        }
     }
 }
