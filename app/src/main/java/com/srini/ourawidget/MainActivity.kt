@@ -8,13 +8,9 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,7 +24,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.LENGTH_LONG
             ).show()
         }
-        scheduleWorker()
+        OuraWidgetProvider.schedulePeriodicRefresh(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,20 +44,8 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else {
-            scheduleWorker()
+            OuraWidgetProvider.schedulePeriodicRefresh(this)
         }
-    }
-
-    private fun scheduleWorker() {
-        val request = PeriodicWorkRequestBuilder<OuraNotificationWorker>(
-            15, TimeUnit.MINUTES // WorkManager's minimum periodic interval
-        ).build()
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "oura_periodic_check",
-            ExistingPeriodicWorkPolicy.UPDATE,
-            request
-        )
     }
 
     private fun refreshNow() {
