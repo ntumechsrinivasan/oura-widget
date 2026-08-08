@@ -3,12 +3,12 @@ package com.srini.ourawidget
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 
 class OuraWidgetProvider : AppWidgetProvider() {
 
@@ -18,52 +18,39 @@ class OuraWidgetProvider : AppWidgetProvider() {
         fun updateAllWidgets(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(
-                android.content.ComponentName(context, OuraWidgetProvider::class.java)
+                ComponentName(context, OuraWidgetProvider::class.java)
             )
-            if (ids.isNotEmpty()) {
-                onUpdateWidgets(context, manager, ids)
-            }
-        }
+            if (ids.isEmpty()) return
 
-        private fun onUpdateWidgets(context: Context, manager: AppWidgetManager, ids: IntArray) {
-            // Show a lightweight "refreshing" state immediately, then fetch in background.
+            // Show a lightweight "refreshing" state immediately; this part is
+            // synchronous and safe to do directly.
             for (id in ids) {
                 val loadingViews = RemoteViews(context.packageName, R.layout.widget_oura)
                 loadingViews.setTextViewText(R.id.widget_status, "Refreshing…")
+                loadingViews.setOnClickPendingIntent(R.id.widget_root, refreshPendingIntent(context))
                 manager.updateAppWidget(id, loadingViews)
             }
 
-            CoroutineScope(Dispatchers.IO).launch {
-                val stats = OuraRepository.fetchTodayStats()
-                for (id in ids) {
-                    val views = RemoteViews(context.packageName, R.layout.widget_oura)
-                    if (stats != null) {
-                        views.setTextViewText(R.id.widget_steps, "${stats.steps}")
-                        views.setTextViewText(R.id.widget_calories, "${stats.totalCalories}")
-                        views.setTextViewText(R.id.widget_status, "Updated just now")
-                    } else {
-                        views.setTextViewText(R.id.widget_steps, "--")
-                        views.setTextViewText(R.id.widget_calories, "--")
-                        views.setTextViewText(R.id.widget_status, "Couldn't refresh, tap to retry")
-                    }
+            // The actual network fetch + final update runs via WorkManager rather
+            // than a bare coroutine, so it reliably completes even if this
+            // BroadcastReceiver's process gets killed right after returning.
+            val request = OneTimeWorkRequestBuilder<OuraWidgetRefreshWorker>().build()
+            WorkManager.getInstance(context).enqueue(request)
+        }
 
-                    val refreshIntent = Intent(context, OuraWidgetProvider::class.java).apply {
-                        action = ACTION_REFRESH
-                    }
-                    val pendingIntent = PendingIntent.getBroadcast(
-                        context, 0, refreshIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                    )
-                    views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
-
-                    manager.updateAppWidget(id, views)
-                }
+        fun refreshPendingIntent(context: Context): PendingIntent {
+            val refreshIntent = Intent(context, OuraWidgetProvider::class.java).apply {
+                action = ACTION_REFRESH
             }
+            return PendingIntent.getBroadcast(
+                context, 0, refreshIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
         }
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        onUpdateWidgets(context, appWidgetManager, appWidgetIds)
+        updateAllWidgets(context)
     }
 
     override fun onReceive(context: Context, intent: Intent) {
