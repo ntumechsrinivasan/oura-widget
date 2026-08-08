@@ -7,4 +7,5 @@
     <color name="widget_text_primary">#FFFFFF</color>
     <color name="widget_text_secondary">#AAAAAA</color>
     <color name="widget_text_tertiary">#888888</color>
+    <color name="widget_progress_track">#33FFFFFF</color>
 </resources>
