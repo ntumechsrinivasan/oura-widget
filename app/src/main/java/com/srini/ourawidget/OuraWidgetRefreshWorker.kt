@@ -37,6 +37,7 @@ class OuraWidgetRefreshWorker(
                 )
             }
             views.setOnClickPendingIntent(R.id.widget_root, OuraWidgetProvider.openOuraAppPendingIntent(context))
+            views.setOnClickPendingIntent(R.id.widget_refresh, OuraWidgetProvider.refreshPendingIntent(context))
             manager.updateAppWidget(id, views)
         }
 
