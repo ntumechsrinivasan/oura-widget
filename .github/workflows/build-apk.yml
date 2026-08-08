@@ -1,0 +1,53 @@
+name: Build APK
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Write gradle.properties from secret
+        run: |
+          echo "OURA_ACCESS_TOKEN=${{ secrets.OURA_ACCESS_TOKEN }}" >> gradle.properties
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses || true
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Build debug APK
+        run: gradle assembleDebug --no-daemon
+
+      - name: Upload APK as build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oura-widget-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish APK to rolling "latest-apk" release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: latest-apk
+          name: Latest debug build
+          body: Auto-built from commit ${{ github.sha }}. Download app-debug.apk below and tap it on your phone to install.
+          allowUpdates: true
+          replacesArtifacts: true
+          artifacts: app/build/outputs/apk/debug/app-debug.apk
+          token: ${{ secrets.GITHUB_TOKEN }}
