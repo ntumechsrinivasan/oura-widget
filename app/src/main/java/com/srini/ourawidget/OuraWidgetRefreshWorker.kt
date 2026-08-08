@@ -22,15 +22,17 @@ class OuraWidgetRefreshWorker(
         for (id in ids) {
             val views = RemoteViews(context.packageName, R.layout.widget_oura)
             if (stats != null) {
-                WidgetStatsCache.save(context, stats.steps, stats.totalCalories)
-                views.setTextViewText(R.id.widget_steps, "${stats.steps}")
-                views.setTextViewText(R.id.widget_calories, "${stats.totalCalories}")
+                WidgetStatsCache.save(context, stats.steps, stats.activeCalories, stats.targetCalories)
+                OuraWidgetProvider.applyStats(views, stats.steps, stats.activeCalories, stats.targetCalories)
                 views.setTextViewText(R.id.widget_status, "Updated just now")
             } else {
                 val cachedSteps = WidgetStatsCache.stepsOrNull(context)
-                val cachedCalories = WidgetStatsCache.caloriesOrNull(context)
-                views.setTextViewText(R.id.widget_steps, cachedSteps?.toString() ?: "--")
-                views.setTextViewText(R.id.widget_calories, cachedCalories?.toString() ?: "--")
+                OuraWidgetProvider.applyStats(
+                    views,
+                    cachedSteps,
+                    WidgetStatsCache.activeCaloriesOrNull(context),
+                    WidgetStatsCache.targetCaloriesOrNull(context)
+                )
                 views.setTextViewText(
                     R.id.widget_status,
                     if (cachedSteps != null) "Couldn't refresh, showing last known" else "Couldn't refresh yet"
