@@ -10,6 +10,7 @@ data class OuraDailyStats(
     val steps: Int,
     val totalCalories: Int,
     val activeCalories: Int,
+    val targetCalories: Int,
     val date: String
 )
 
@@ -52,7 +53,7 @@ object OuraRepository {
                 val data = json.optJSONArray("data") ?: return null
                 if (data.length() == 0) {
                     // Oura has no record at all in this window yet.
-                    return OuraDailyStats(steps = 0, totalCalories = 0, activeCalories = 0, date = endDate)
+                    return OuraDailyStats(steps = 0, totalCalories = 0, activeCalories = 0, targetCalories = 0, date = endDate)
                 }
                 // Records come back oldest-first; the last one is the most recent Oura has published.
                 val entry = data.getJSONObject(data.length() - 1)
@@ -60,6 +61,7 @@ object OuraRepository {
                     steps = entry.optInt("steps", 0),
                     totalCalories = entry.optInt("total_calories", 0),
                     activeCalories = entry.optInt("active_calories", 0),
+                    targetCalories = entry.optInt("target_calories", 0),
                     date = entry.optString("day", endDate)
                 )
             }
